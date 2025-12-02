@@ -31,6 +31,7 @@ const LANGUAGE_LABELS = {
   swift: "Swift",
 };
 
+// JUDGE0_BASE_URL should be like: https://ce.judge0.com
 const JUDGE0_BASE_URL = import.meta.env.VITE_JUDGE0_BASE_URL;
 const JUDGE0_API_KEY = import.meta.env.VITE_JUDGE0_API_KEY;
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
@@ -67,8 +68,9 @@ export default function App() {
         // headers["X-RapidAPI-Host"] = "your-judge0-host";
       }
 
+      // ⬇️ MAIN FIX: use /submissions + wait=true so we get stdout/stderr directly
       const res = await axios.post(
-        JUDGE0_BASE_URL,
+        `${JUDGE0_BASE_URL}/submissions?base64_encoded=false&wait=true`,
         {
           source_code: code,
           language_id: languageId,
@@ -91,10 +93,21 @@ export default function App() {
 
       setOutput(finalOutput || "No output.");
     } catch (err) {
-      console.error(err);
-      setOutput(
-        "❌ Error running code. Check the browser console & your Judge0 config."
-      );
+      console.error("Judge0 error:", err);
+
+      if (err.response) {
+        setOutput(
+          `❌ Judge0 error ${err.response.status}\n` +
+            `${JSON.stringify(err.response.data, null, 2)}`
+        );
+      } else if (err.request) {
+        setOutput(
+          "❌ No response from Judge0. Possible CORS or network error.\n" +
+            "Check DevTools → Network for more details."
+        );
+      } else {
+        setOutput("❌ Error: " + err.message);
+      }
     } finally {
       setIsRunning(false);
     }
