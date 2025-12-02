@@ -1,0 +1,19 @@
+node_modules
+dist
+.vite
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor settings
+.vscode
+.idea
+
+# Env files (do NOT commit secrets)
+.env
+.env.*
+!.env.example
+.env.local
